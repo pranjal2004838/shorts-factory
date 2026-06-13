@@ -1,0 +1,9 @@
+{
+  "comment": "Raw uploads are disposable: auto-delete after 24h to save cost. Apply: gsutil lifecycle set deploy/gcs-lifecycle.json gs://YOUR_RAW_BUCKET",
+  "rule": [
+    {
+      "action": { "type": "Delete" },
+      "condition": { "age": 1 }
+    }
+  ]
+}

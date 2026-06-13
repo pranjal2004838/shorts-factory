@@ -1,0 +1,44 @@
+# Cloud Run service for the Shorts Factory backend.
+# Deploy: gcloud run services replace deploy/cloudrun-service.yaml --region=$REGION
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: shorts-factory-backend
+  labels:
+    app: shorts-factory
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "20"
+        run.googleapis.com/cpu-throttling: "false"
+    spec:
+      containerConcurrency: 1
+      timeoutSeconds: 600
+      containers:
+        - image: gcr.io/PROJECT_ID/shorts-factory-backend:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          env:
+            - name: WHISPER_MODEL
+              value: "base"
+            - name: WHISPER_DEVICE
+              value: "cpu"
+            - name: WHISPER_COMPUTE_TYPE
+              value: "int8"
+            # Secrets are injected from Secret Manager, never baked in.
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-api-key
+                  key: latest
+            - name: GIPHY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: giphy-api-key
+                  key: latest
